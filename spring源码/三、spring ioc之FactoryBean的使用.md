@@ -1,5 +1,5 @@
 　　一般情况下，Spring通过反射机制利用bean的class属性指定实现类来实例化bean。在某些情况下，实例化bean过程比较复杂，如果按照传统的方式，则需要在<bean>中提供大量的配置信息，配置方式的灵活性是受限的，这是采用编码的方式可能得到一个简单的方案。Spring为此提供了一个FactoryBean的工厂接口，用户可以通过实现该接口定制实例化bean的逻辑。个人觉得在spring4.0之后可以用@Bean注解取代FactoryBean。
-#　FactoryBean接口
+# FactoryBean接口
 该接口中定义了三个方法：
 ```java
 //返回由FactoryBean创建的bean实例
@@ -34,3 +34,51 @@ public class SqlSessionFactoryBean implements FactoryBean<SqlSessionFactory>, In
 }
 ```
 # 原理解析
+原理其实已经能够看出来了，在调用实现FactoryBean接口的bean时，spring会间接调用FactoryBean的getObject()方法，但这代码在哪实现的呢？
+AbstractBeanFactory#getObjectForBeanInstance()方法实现了这个逻辑，这个方法会被getBean()间接调用。
+```java
+protected Object getObjectForBeanInstance(
+    Object beanInstance, String name, String beanName, RootBeanDefinition mbd) {
+  //如果对象不是FactoryBean子类或者beanName中有&，直接返回bean
+  if (!(beanInstance instanceof FactoryBean) || BeanFactoryUtils.isFactoryDereference(name)) {
+    return beanInstance;
+  }
+  //...省略缓存操作
+  object = getObjectFromFactoryBean(factory, beanName, !synthetic);
+  ...
+  }
+  return object;
+}
+```
+```java
+private Object doGetObjectFromFactoryBean(final FactoryBean<?> factory, final String beanName)
+    throws BeanCreationException {
+
+  Object object;
+  try {
+    if (System.getSecurityManager() != null) {
+      AccessControlContext acc = getAccessControlContext();
+      try {
+        object = AccessController.doPrivileged(new PrivilegedExceptionAction<Object>() {
+          @Override
+          public Object run() throws Exception {
+              return factory.getObject();
+            }
+          }, acc);
+      }
+      catch (PrivilegedActionException pae) {
+        throw pae.getException();
+      }
+    }
+    else {
+      //直接调用getObject方法
+      object = factory.getObject();
+    }
+  }
+  catch (FactoryBeanNotInitializedException ex) {
+    throw new BeanCurrentlyInCreationException(beanName, ex.toString());
+  }
+  catch (Throwable ex) {
+    throw new BeanCreationException(beanName, "FactoryBean threw exception on object creation", ex);
+  }
+```
