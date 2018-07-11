@@ -114,9 +114,9 @@ final class $Proxy0 extends Proxy implements IPerson {
     }
 }
 ```
-代理的大概结构包括4部分：
-静态字段：被代理的接口所有方法都有一个对应的静态方法变量；
-静态块：主要是通过反射初始化静态方法变量；
+代理类实现了目标类中的接口，代理的大概结构包括4部分：
+静态字段：被代理的接口所有方法都有一个对应的静态变量；
+静态块：主要是通过反射初始化静态变量；
 具体每个代理方法：逻辑都差不多就是 h.invoke，h是Proxy的属性。主要是调用我们定义好的invocatinoHandler逻辑,触发目标对象target上对应的方法;
 ```java
 public class Proxy implements java.io.Serializable {
