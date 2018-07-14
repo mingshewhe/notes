@@ -1,3 +1,50 @@
+# 使用
+spring4.0之后能够很方便的使用spring aop，使用@EnableAspectJAutoProxy开启aop，使用@Aspect注解声明切面。
+```java
+@Configuration
+@ComponentScan
+@EnableAspectJAutoProxy
+public class PerformConfig {
+}
+
+public interface Performance {
+
+    void perform();
+}
+
+@Component
+public class PerformanceImpl implements  Performance{
+    @Override
+    public void perform() {
+        System.out.println("perform");
+    }
+}
+
+@Aspect
+@Component
+public class Audience {
+
+    @Pointcut("execution(* com.ming.aop.Performance.*(..))")
+    public void perform(){
+    }
+
+    @Before("perform()")
+    public void takeSeats() {
+        System.out.println("perform before take seats");
+    }
+
+    @AfterReturning("perform()")
+    public void applause() {
+        System.out.println("CLAP CLAP CLAP");
+    }
+
+    @AfterThrowing("perform()")
+    public void demandRefund() {
+        System.out.println("demanding a refund");
+    }
+}
+```
+# 原理解析
 @EnableAspectJAutoProxy注解是开启spring aop，@EnableAspectJAutoProxy注解源码如下:
 ```java
 @Target(ElementType.TYPE)
