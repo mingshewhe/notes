@@ -338,7 +338,7 @@ protected WebApplicationContext initWebApplicationContext() {
                     //2. 设置Spring上下文作为当前父上下文
                     cwac.setParent(rootContext);
                 }
-                //调用refresh()
+                //2.调用refresh()
                 configureAndRefreshWebApplicationContext(cwac);
             }
         }
@@ -359,6 +359,7 @@ protected WebApplicationContext initWebApplicationContext() {
         // Either the context is not a ConfigurableApplicationContext with refresh
         // support or the context injected at construction time had already been
         // refreshed -> trigger initial onRefresh manually here.
+        //3. 刷新Spring在web功能实现所必须使用的全局变量
         onRefresh(wac);
     }
 
@@ -378,6 +379,7 @@ protected WebApplicationContext initWebApplicationContext() {
 初始化Servlet上下文流程如下:
 1. 得到Spring上下文，把Spring上下文设置成Servlet上下文的parent。
 2. 调用refresh方法加载上下文。这里和Spring上下文的逻辑差不多，就不贴代码了。
+3. 刷新Spring在web功能实现所必须使用的全局变量,这步作用在下节分析
 # 疑惑
 为什么Servlet上下文能够获得到Spring上下文中的bean。我在DefaultListableBeanFactory的getBean中找到答案:
 ```java
